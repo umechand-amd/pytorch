@@ -407,10 +407,9 @@ def register_custom_op_autotuning(
         config_generator: Dynamic config generator function that takes a dict mapping
                           parameter names to fake tensors, and returns list[CustomOpConfig]
                           based on input tensor properties. Mutually exclusive with configs.
-        name: Operation name (default: "{op_name}_autotuned")
-        input_gen_fns: Custom input generators for benchmarking
-
-    Examples:
+        config_generator: Dynamic config generator function that takes shape dict mapping
+                          parameter names to shape tuples, and returns list[CustomOpConfig]
+                          based on input shapes. Mutually exclusive with configs.
         # Static configs
         @torch.library.custom_op("mylib::attention", mutates_args=())
         def my_attention(query, key, value, head_dim=32):
