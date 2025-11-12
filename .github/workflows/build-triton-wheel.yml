@@ -51,14 +51,13 @@ jobs:
       fail-fast: false
       matrix:
         py_vers: [ "3.10", "3.11", "3.12", "3.13", "3.13t", "3.14", "3.14t" ]
-        device: ["cuda", "rocm", "xpu", "aarch64"]
-        rocm_version: [""]
+        device: ["cuda", "rocm-n", "rocm-n-1", "xpu", "aarch64"]
         docker-image: ["pytorch/manylinux2_28-builder:cpu"]
         include:
-          - device: "rocm"
+          - device: "rocm-n"
             rocm_version: "7.1"
             runs_on: "${{ needs.get-label-type.outputs.label-type }}linux.4xlarge"
-          - device: "rocm"
+          - device: "rocm-n-1"
             rocm_version: "7.0"
             runs_on: "${{ needs.get-label-type.outputs.label-type }}linux.4xlarge"
           - device: "cuda"
