@@ -65,6 +65,13 @@ if [[ -e /opt/openssl ]]; then
     export CMAKE_INCLUDE_PATH="/opt/openssl/include":$CMAKE_INCLUDE_PATH
 fi
 
+# Set AArch64 variables
+if [[ $GPU_ARCH_TYPE == *"aarch64"* ]]; then
+    export USE_MKLDNN=ON
+    export USE_MKLDNN_ACL=ON
+    export ACL_ROOT_DIR="/acl"
+fi
+
 # If given a python version like 3.6m or 2.7mu, convert this to the format we
 # expect. The binary CI jobs pass in python versions like this; they also only
 # ever pass one python version, so we assume that DESIRED_PYTHON is not a list
