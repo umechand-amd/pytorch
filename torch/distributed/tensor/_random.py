@@ -3,7 +3,7 @@
 import contextlib
 import warnings
 from logging import getLogger
-from typing import Optional, Union
+from typing import Optional
 
 import torch
 from torch.distributed.device_mesh import _get_device_handle, DeviceMesh
@@ -171,7 +171,7 @@ class _RNGStateTracker:
         self._use_distribute_region = value
 
     def _distribute_region(
-        self, spec: DTensorSpec, generator: Optional[torch.Generator] = None
+        self, spec: DTensorSpec, generator: torch.Generator | None = None
     ):
         pass
 
@@ -237,7 +237,7 @@ class OffsetBasedRNGTracker(_RNGStateTracker):
 
     @contextlib.contextmanager
     def _distribute_region(
-        self, spec: DTensorSpec, generator: Optional[torch.Generator] = None
+        self, spec: DTensorSpec, generator: torch.Generator | None = None
     ):
         if generator is not None:
             # This is a little hacky, but for any user-passed generator, we store its state under a unique key,
@@ -327,7 +327,7 @@ class OffsetBasedRNGTracker(_RNGStateTracker):
         mesh = spec.mesh
         # note: dim_map does not allow double sharding which is the FSDP(fully_shard)+TP
         # case. Replace the custom logic with dim_map once we support it.
-        dim_map: list[Union[int, list[int]]] = [-1] * spec.ndim
+        dim_map: list[int | list[int]] = [-1] * spec.ndim
         for i, placement in enumerate(spec.placements):
             if isinstance(placement, Shard):
                 shard_dim = placement.dim
