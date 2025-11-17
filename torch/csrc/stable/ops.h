@@ -9,9 +9,8 @@
 
 #include <torch/csrc/inductor/aoti_torch/generated/c_shim_aten.h>
 #include <torch/headeronly/core/ScalarType.h>
-#include <torch/headeronly/macros/Macros.h>
 
-HIDDEN_NAMESPACE_BEGIN(torch, stable)
+namespace torch::stable {
 
 // We expect this to be the stable version of the empty_like op that takes in
 // no kwargs (device, dtype, layout, memory_format). We will add kwargs
@@ -19,15 +18,15 @@ HIDDEN_NAMESPACE_BEGIN(torch, stable)
 inline torch::stable::Tensor empty_like(const torch::stable::Tensor& self) {
   const auto num_args = 6;
   std::array<StableIValue, num_args> stack{
-      torch::stable::detail::from(self),
-      torch::stable::detail::from(std::nullopt),
-      torch::stable::detail::from(std::nullopt),
-      torch::stable::detail::from(std::nullopt),
-      torch::stable::detail::from(std::nullopt),
-      torch::stable::detail::from(std::nullopt)};
+      from(self),
+      from(std::nullopt),
+      from(std::nullopt),
+      from(std::nullopt),
+      from(std::nullopt),
+      from(std::nullopt)};
   TORCH_ERROR_CODE_CHECK(
       aoti_torch_call_dispatcher("aten::empty_like", "", stack.data()));
-  return torch::stable::detail::to<torch::stable::Tensor>(stack[0]);
+  return to<torch::stable::Tensor>(stack[0]);
 }
 
 // We expect this to be the stable version of the fill_.Scalar op
@@ -72,8 +71,7 @@ inline torch::stable::Tensor new_empty(
 
   int32_t target_dtype;
   if (dtype.has_value()) {
-    target_dtype = torch::stable::detail::to<int32_t>(
-        torch::stable::detail::from(dtype.value()));
+    target_dtype = to<int32_t>(from(dtype.value()));
   } else {
     TORCH_ERROR_CODE_CHECK(aoti_torch_get_dtype(self.get(), &target_dtype));
   }
@@ -111,8 +109,7 @@ inline torch::stable::Tensor new_zeros(
 
   int32_t target_dtype;
   if (dtype.has_value()) {
-    target_dtype = torch::stable::detail::to<int32_t>(
-        torch::stable::detail::from(dtype.value()));
+    target_dtype = to<int32_t>(from(dtype.value()));
   } else {
     TORCH_ERROR_CODE_CHECK(aoti_torch_get_dtype(self.get(), &target_dtype));
   }
@@ -197,13 +194,10 @@ inline torch::stable::Tensor transpose(
     int64_t dim0,
     int64_t dim1) {
   const auto num_args = 3;
-  std::array<StableIValue, num_args> stack{
-      torch::stable::detail::from(self),
-      torch::stable::detail::from(dim0),
-      torch::stable::detail::from(dim1)};
+  std::array<StableIValue, num_args> stack{from(self), from(dim0), from(dim1)};
   TORCH_ERROR_CODE_CHECK(
       aoti_torch_call_dispatcher("aten::transpose", "int", stack.data()));
-  return torch::stable::detail::to<torch::stable::Tensor>(stack[0]);
+  return to<torch::stable::Tensor>(stack[0]);
 }
 
 // We expect this to be the stable version of the zero_ op with identical
@@ -211,10 +205,10 @@ inline torch::stable::Tensor transpose(
 // a tensor method but only as a function i.e. zero_(t) not t.zero_()).
 inline torch::stable::Tensor zero_(torch::stable::Tensor& self) {
   const auto num_args = 1;
-  std::array<StableIValue, num_args> stack{torch::stable::detail::from(self)};
+  std::array<StableIValue, num_args> stack{from(self)};
   TORCH_ERROR_CODE_CHECK(
       aoti_torch_call_dispatcher("aten::zero_", "", stack.data()));
-  return torch::stable::detail::to<torch::stable::Tensor>(stack[0]);
+  return to<torch::stable::Tensor>(stack[0]);
 }
 
 // We expect this to be the stable version of the copy_ op with
@@ -225,30 +219,26 @@ inline torch::stable::Tensor copy_(
     std::optional<bool> non_blocking = std::nullopt) {
   const auto num_args = 3;
   std::array<StableIValue, num_args> stack{
-      torch::stable::detail::from(self),
-      torch::stable::detail::from(src),
-      torch::stable::detail::from(non_blocking.value_or(false))};
+      from(self), from(src), from(non_blocking.value_or(false))};
   TORCH_ERROR_CODE_CHECK(
       aoti_torch_call_dispatcher("aten::copy_", "", stack.data()));
-  return torch::stable::detail::to<torch::stable::Tensor>(stack[0]);
+  return to<torch::stable::Tensor>(stack[0]);
 }
 
 // We expect this to be the stable version of the clone op. We will
 // add optional memory_format kwarg support in the future.
 inline torch::stable::Tensor clone(const torch::stable::Tensor& self) {
   const auto num_args = 2;
-  std::array<StableIValue, num_args> stack{
-      torch::stable::detail::from(self),
-      torch::stable::detail::from(std::nullopt)};
+  std::array<StableIValue, num_args> stack{from(self), from(std::nullopt)};
   TORCH_ERROR_CODE_CHECK(
       aoti_torch_call_dispatcher("aten::clone", "", stack.data()));
-  return torch::stable::detail::to<torch::stable::Tensor>(stack[0]);
+  return to<torch::stable::Tensor>(stack[0]);
 }
 
-#if TORCH_FEATURE_VERSION >= TORCH_VERSION_2_10_0
+#if TORCH_FEATURE_VERSION >= (((0ULL + 2) << 56) | ((0ULL + 10) << 48))
 
-// New ops should be added here if they use a brand new shim API
+// New ops should be added here if they do not use aoti_torch_call_dispatcher
 
 #endif
 
-HIDDEN_NAMESPACE_END(torch, stable)
+} // namespace torch::stable
