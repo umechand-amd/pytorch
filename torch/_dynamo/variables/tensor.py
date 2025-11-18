@@ -735,8 +735,13 @@ class TensorVariable(VariableTracker):
         # tensor metadata from the arguments to self. For example:
         #   x.add_(y) where y.requires_grad=True => x.requires_grad becomes True
         # This is similar to the fix in method___setitem__.
-        if name.endswith("_") and args and isinstance(args[0], TensorVariable):
-            self._propagate_inplace_metadata(tx, proxy, args[0])
+        # breakpoint()
+        if name.endswith("_") and args:
+            inplace_idx = 0
+            while inplace_idx < len(args) and not isinstance(args[inplace_idx], TensorVariable):
+                inplace_idx += 1
+            if inplace_idx < len(args):
+                self._propagate_inplace_metadata(tx, proxy, args[inplace_idx])
 
         return wrap_fx_proxy(tx, proxy)
 

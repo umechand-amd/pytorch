@@ -3060,10 +3060,7 @@ class TestTensorMetaProp(TestCase):
             @staticmethod
             def forward(ctx, x):
                 ctx.save_for_backward(x)
-                if x.requires_grad:
-                    return x * 2
-                else:
-                    return x * 1
+                return x * 2
 
             @staticmethod
             def backward(ctx, grad_out):
@@ -3099,6 +3096,7 @@ class TestTensorMetaProp(TestCase):
                 # Apply inplace op in eager mode
                 inplace_op(x_eager, *args_eager, **sample.kwargs)
                 output_eager = CustomAutograd.apply(x_eager)
+                output_eager.sum().backward()
 
                 # Setup compiled version
                 x_compiled = sample.input.clone().detach()
@@ -3108,7 +3106,7 @@ class TestTensorMetaProp(TestCase):
                 ]
                 args_compiled[requires_grad_idx].requires_grad_(True)
 
-                # Check that the metadata is propagated after the inplace op
+                # Test 1: Verify that the metadata is propagated after the inplace op in compile time
                 def compile_time_check(ctx: ComptimeContext) -> None:
                     x = ctx.get_local("x")
                     x_fake = x.as_fake()
@@ -3122,18 +3120,19 @@ class TestTensorMetaProp(TestCase):
 
                 compiled_fn = torch.compile(fn, backend="eager", fullgraph=True)
                 output_compiled = compiled_fn(x_compiled, *args_compiled)
+                output_compiled.sum().backward()
 
-                # Test 1: Verify requires_grad was propagated
+                # Test 2: Verify requires_grad was propagated in runtime
                 self.assertEqual(
                     x_eager.requires_grad,
                     x_compiled.requires_grad,
                     msg=f"{op.name}: requires_grad mismatch (eager={x_eager.requires_grad}, compiled={x_compiled.requires_grad})",
                 )
 
-                # Test 2: Verify CustomAutograd is applied correctly
+                # Test 3: Verify gradients match
                 self.assertEqual(
-                    output_eager,
-                    output_compiled,
+                    args_eager[requires_grad_idx].grad,
+                    args_compiled[requires_grad_idx].grad,
                     msg=f"{op.name}: Output mismatch indicates metadata not propagated during tracing",
                 )
 
@@ -3145,6 +3144,7 @@ class TestTensorMetaProp(TestCase):
                     for pattern in [
                         "out=... arguments don't support automatic differentiation",
                         "the base given to",  # dtype issue
+                        "derivative for", # backward not implemented
                     ]
                 ):
                     continue
