@@ -25,11 +25,15 @@ class CustomOpConfig:
     """Config for custom op autotuning.
 
     Specifies optional decomposition function with parameter values.
-    Each config creates exactly one variant to benchmark.
+     Each config creates exactly one variant.
+
+    Args:
+        decomposition: Optional functions to autotune. If not provided, default will be used.
+        **params: Parameters passed to the function
 
     Examples:
         CustomOpConfig(attention_impl, head_dim=32, method='chunked')
-        CustomOpConfig(head_dim=128)  # Use default impl with params
+        CustomOpConfig(head_dim=32, method='chunked')
     """
 
     def __init__(
@@ -47,22 +51,24 @@ class CustomOpConfig:
     def get_decomposition(
         self, default_impl: Optional[Callable[..., Any]] = None
     ) -> Callable[..., Any]:
-        """Return the decomposition function for this config."""
+        """Return the decomposition function for this config.
+        When decomposition is not specified, return the default implementation.
+        """
         if self.decomposition is not None:
             return self.decomposition
         if default_impl is not None and callable(default_impl):
             return default_impl
         raise TypeError(
-            "No decomposition specified in config and no default implementation provided."
+            "No decomposition specified in config and no default implementation provided. "
+            "Please provide a decomposition function in CustomOpConfig."
         )
 
     def __repr__(self) -> str:
         decomp_name = self.decomposition.__name__ if self.decomposition else "default"
-        parts = [decomp_name]
         if self.params:
             params_str = ", ".join(f"{k}={v}" for k, v in self.params.items())
-            parts.append(params_str)
-        return f"CustomOpConfig({', '.join(parts)})"
+            return f"CustomOpConfig({decomp_name}, {params_str})"
+        return f"CustomOpConfig({decomp_name})"
 
 
 __all__ = [
@@ -75,7 +81,17 @@ __all__ = [
 def _extract_tensor_inputs(
     args: tuple[Any, ...], kwargs: dict[str, Any]
 ) -> tuple[list[Any], dict[str, Any]]:
-    """Extract tensor inputs from args/kwargs, separating from non-tensor parameters."""
+    """Extract tensor inputs from mixed args/kwargs.
+    Separates tensors (for autotuning input_nodes) from non-tensor parameters.
+    Non-tensor kwargs are later functools.partial'd into decomposition functions.
+
+    Args:
+        args: Positional arguments (mix of tensors and scalars)
+        kwargs: Keyword arguments (mix of tensors and scalars)
+
+    Returns:
+        Tuple of (tensor_inputs_list, non_tensor_kwargs)
+    """
     tensor_inputs = []
     non_tensor_kwargs = {}
 
@@ -1012,19 +1028,35 @@ def register_custom_op_autotuning(
     dispatch_on: Optional[tuple[str, int]] = None,
     split_points: Optional[list[int]] = None,
 ) -> None:
-    """Register custom op for autotuning.
+    """Register custom op for autotuning with custom_op configs where each config
+    specifies a decomposition implementation function with its parameter values.
+    It also supports Range-based autotuning to benchmark per range and generate
+    runtime dispatch.
 
-    Two modes:
-    1. Standard autotuning: Benchmark all configs and select the best globally
-    2. Range-based autotuning: Benchmark per range and generate runtime dispatch
+    Args:
+        custom_op: Custom operation (decorated function from @torch.library.custom_op)
+        configs: List of CustomOpConfig objects
+        name: Operation name (default: "{op_name}_autotuned")
+        input_gen_fns: Custom input generators for benchmarking
+
+    Examples:
+        @torch.library.custom_op("mylib::attention", mutates_args=())
+        def my_attention(query, key, value, head_dim=32):
+            ...
 
     Standard Example:
         register_custom_op_autotuning(
             my_attention,
             configs=[
-                CustomOpConfig(impl1, head_dim=32),
-                CustomOpConfig(impl2, head_dim=64),
+                CustomOpConfig(attention_impl, head_dim=32, method='chunked'),
+                CustomOpConfig(attention_impl, head_dim=64, method='tiled'),
+                CustomOpConfig(head_dim=128),  # No decomposition specified, use default
             ],
+            input_gen_fns={
+                "query": lambda fake: torch.randn_like(fake, device='cuda'),
+                "key": lambda fake: torch.randn_like(fake, device='cuda'),
+                "value": lambda fake: torch.randn_like(fake, device='cuda'),
+            },
         )
 
     Range-based Example:
@@ -1038,7 +1070,10 @@ def register_custom_op_autotuning(
     from torch._library.custom_ops import CustomOpDef
 
     if not isinstance(custom_op, CustomOpDef):
-        raise TypeError(f"custom_op must be a CustomOpDef, got {type(custom_op)}")
+        raise TypeError(
+            f"custom_op must be a CustomOpDef (decorated function from @torch.library.custom_op), "
+            f"got {type(custom_op)}."
+        )
 
     op_overload = custom_op._opoverload
     default_impl = custom_op._init_fn
