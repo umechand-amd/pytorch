@@ -1132,8 +1132,8 @@ class PythonWrapperCodegen(CodeGen):
         if is_subgraph:
             assert subgraph_name is not None
             assert parent_wrapper is not None
-            return PythonWrapperCodegen.create(
-                is_subgraph, subgraph_name, parent_wrapper, partition_signatures
+            return SubgraphPythonWrapperCodegen(
+                subgraph_name, parent_wrapper, partition_signatures
             )
         return PythonWrapperCodegen()
 
