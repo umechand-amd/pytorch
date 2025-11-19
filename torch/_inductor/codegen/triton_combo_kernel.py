@@ -35,7 +35,7 @@ from .common import (
 )
 from .simd import prefix_is_reduction, SIMDScheduling
 from .simd_kernel_features import SIMDKernelFeatures
-from .triton import TritonKernel, TritonScheduling
+from .triton import TritonKernel
 from .triton_utils import config_of, signature_to_meta
 
 
@@ -355,7 +355,10 @@ class ComboKernel(Kernel):
                 code.splice(f"pid_offset = pid // {num_kernels}")
 
     def __init__(
-        self, triton_kernel_cls: type[TritonKernel], enable_autotune: bool = False, mixed_sizes: bool = False,
+        self,
+        triton_kernel_cls: type[TritonKernel],
+        enable_autotune: bool = False,
+        mixed_sizes: bool = False,
     ) -> None:
         super().__init__()
         self.triton_kernel_cls = triton_kernel_cls
@@ -392,7 +395,7 @@ class ComboKernel(Kernel):
         tiling: dict[str, sympy.Expr],
         features: SIMDKernelFeatures,
         optimize_mask: bool,
-        triton_kernel_cls: type[TritonKernel]
+        triton_kernel_cls: type[TritonKernel],
     ) -> TritonKernel:
         """
         Only allow optimize_mask=True when 1) sequential dispatch is used,
