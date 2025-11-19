@@ -45,7 +45,7 @@ from torch._inductor.runtime.hints import (
 from torch._inductor.runtime.triton_helpers import math as tl_math
 from torch._inductor.runtime.triton_heuristics import (
     autotune_hints_to_configs,
-    get_heuristic_config,
+    CachingAutotuner,
     template,
     triton_config,
 )
@@ -190,9 +190,8 @@ class TestTritonHeuristics(TestCase):
         for cfg in args["configs"]:
             cfg.pre_hook = pre_hook
 
-        heuristic_config = get_heuristic_config(GPU_TYPE)
         with self.assertRaisesRegex(AssertionError, "pre_hook"):
-            heuristic_config.caching_autotuner_cls(**args)
+            CachingAutotuner(**args)
 
     def test_autotune_hints_to_configs(self):
         device_props = DeviceProperties.create(torch.device(GPU_TYPE))
@@ -312,8 +311,7 @@ class TestArgumentCloneAndRestore(TestCase):
         args = TestTritonHeuristics._get_cos_kernel_caching_autotuner_args()
         args["optimize_mem"] = True
         args["mutated_arg_names"] = ["in_ptr0"]
-        heuristic_config = get_heuristic_config(GPU_TYPE)
-        autotuner = heuristic_config.caching_autotuner_cls(**args)
+        autotuner = CachingAutotuner(**args)
         return autotuner
 
     def _create_tensor(self, pad=1, with_offset=False):
