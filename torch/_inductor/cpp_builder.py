@@ -1303,7 +1303,7 @@ def perload_icx_libomp_win(cpp_compiler: str) -> None:
 def preload_gcc_libgomp_linux(cflags, ldflags, libs, lib_dir_paths):
 
     torch_root = Path(torch.__file__).resolve().parent
-    for d in [torch_root / "lib", (torch_root.parent / "torch.libs").resolve()]:
+    for d in [torch_root / "lib", torch_root.parent / "torch.libs"]:
         torch_libgomp = glob.glob(str(d / "libgomp-*.so*"))
         if not torch_libgomp:
             continue
