@@ -6910,8 +6910,6 @@ class TMADescriptorStable(TMADescriptor):
 
 
 class SubgraphBuffer(ExternKernel):
-    """Represents a subgraph with optional multi-range dispatch."""
-
     def __init__(
         self,
         layout: Layout,
@@ -6940,6 +6938,7 @@ class SubgraphBuffer(ExternKernel):
         import torch._inductor.config as inductor_config
 
         with V.set_graph_handler(self.subgraph):
+            # Don't bother autotuning on Triton here
             with inductor_config.patch(
                 max_autotune=False,
                 max_autotune_gemm=False,
