@@ -111,7 +111,7 @@ jobs:
 
       - name: Pull docker image
         run: |
-          docker pull "docker-registry.docker-registry.svc.cluster.local:5000/$IMAGE"
+          docker pull $IMAGE
         env:
           IMAGE: ${{ inputs.docker-image }}
 
