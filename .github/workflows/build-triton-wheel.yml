@@ -32,6 +32,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}-${{ github.event_name == 'workflow_dispatch' }}
   cancel-in-progress: true
 
+env:
+  ROCM_VERSIONS: '["7.1", "7.0"]'
+
 jobs:
   get-label-type:
     if: github.repository_owner == 'pytorch'
@@ -55,10 +58,10 @@ jobs:
         docker-image: ["pytorch/manylinux2_28-builder:cpu"]
         include:
           - device: "rocm-n"
-            rocm_version: "7.1"
+            rocm_version: ${{ fromJSON(env.ROCM_VERSIONS)[0] }}
             runs_on: "${{ needs.get-label-type.outputs.label-type }}linux.4xlarge"
           - device: "rocm-n-1"
-            rocm_version: "7.0"
+            rocm_version: ${{ fromJSON(env.ROCM_VERSIONS)[1] }}
             runs_on: "${{ needs.get-label-type.outputs.label-type }}linux.4xlarge"
           - device: "cuda"
             rocm_version: ""
@@ -162,7 +165,7 @@ jobs:
             WITH_CLANG_LDD="--with-clang-ldd"
           fi
 
-          docker exec -t "${container_name}" bash -c "${PYTHON_EXECUTABLE} /pytorch/.github/scripts/build_triton_wheel.py --device=$BUILD_DEVICE $RELEASE $WITH_CLANG_LDD"
+          docker exec -t "${container_name}" bash -c "${PYTHON_EXECUTABLE} /pytorch/.github/scripts/build_triton_wheel.py --device=$BUILD_DEVICE --rocm-version='${{ matrix.rocm_version }}' $RELEASE $WITH_CLANG_LDD"
 
           if [[ ("${{ matrix.device }}" == "cuda" || "${{ matrix.device }}" == "xpu") ]]; then
             docker exec -t "${container_name}"  bash -c "auditwheel repair --plat ${PLATFORM} //artifacts/*.whl"

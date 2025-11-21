@@ -59,6 +59,7 @@ def build_triton(
     py_version: Optional[str] = None,
     release: bool = False,
     with_clang_ldd: bool = False,
+    rocm_version: Optional[str] = None,
 ) -> Path:
     env = os.environ.copy()
     if "MAX_JOBS" not in env:
@@ -71,6 +72,8 @@ def build_triton(
 
         triton_repo = "https://github.com/openai/triton"
         if device == "rocm":
+            if rocm_version:
+                version = f"{version}+rocm{rocm_version}"
             triton_pkg_name = "pytorch-triton-rocm"
         elif device == "xpu":
             triton_pkg_name = "pytorch-triton-xpu"
@@ -142,6 +145,7 @@ def main() -> None:
     parser.add_argument("--commit-hash", type=str)
     parser.add_argument("--with-clang-ldd", action="store_true")
     parser.add_argument("--triton-version", type=str, default=None)
+    parser.add_argument("--rocm-version", type=str, default=None)
     args = parser.parse_args()
 
     triton_version = read_triton_version(args.device)
