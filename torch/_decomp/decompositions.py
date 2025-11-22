@@ -932,10 +932,18 @@ if hasattr(aten, "_linear_cross_entropy_batch_chunking"):
 
         flag_dtype = torch.bool
         grad_weight_flag = aten.full.default(
-            [], grad_weight_valid, dtype=flag_dtype, layout=grad_logits.layout, device=grad_logits.device
+            [],
+            grad_weight_valid,
+            dtype=flag_dtype,
+            layout=grad_logits.layout,
+            device=grad_logits.device,
         )
         grad_bias_flag = aten.full.default(
-            [], grad_bias_valid, dtype=flag_dtype, layout=grad_logits.layout, device=grad_logits.device
+            [],
+            grad_bias_valid,
+            dtype=flag_dtype,
+            layout=grad_logits.layout,
+            device=grad_logits.device,
         )
 
         return (
@@ -946,6 +954,94 @@ if hasattr(aten, "_linear_cross_entropy_batch_chunking"):
             grad_weight_flag,
             grad_bias_flag,
         )
+
+
+if hasattr(aten, "_linear_cross_entropy_vocab_chunking_backward"):
+
+    @register_decomposition(aten._linear_cross_entropy_vocab_chunking_backward)
+    def _linear_cross_entropy_vocab_chunking_backward(
+        grad_output: Tensor,
+        saved_logsumexp: Tensor,
+        input: Tensor,
+        linear_weight: Tensor,
+        target: Tensor,
+        linear_bias: Optional[Tensor] = None,
+        reduction: int = Reduction.MEAN.value,
+        ignore_index: int = -100,
+        label_smoothing: float = 0.0,
+        chunk_size: int = 4096,
+    ) -> tuple[Tensor, Tensor, Optional[Tensor]]:
+        return torch.ops.aten.linear_cross_entropy_backward(
+            grad_output,
+            input,
+            linear_weight,
+            target,
+            linear_bias,
+            reduction,
+            ignore_index,
+            label_smoothing,
+            "vocab",
+            chunk_size,
+            None,
+        )
+
+
+if hasattr(aten, "_linear_cross_entropy_batch_chunking_backward"):
+
+    @register_decomposition(aten._linear_cross_entropy_batch_chunking_backward)
+    def _linear_cross_entropy_batch_chunking_backward(
+        grad_output: Tensor,
+        saved_grad_input: Tensor,
+        saved_grad_weight: Tensor,
+        saved_grad_bias: Tensor,
+        grad_weight_valid: Tensor,
+        grad_bias_valid: Tensor,
+        input: Tensor,
+        linear_weight: Tensor,
+        target: Tensor,
+        linear_bias: Optional[Tensor] = None,
+        reduction: int = Reduction.MEAN.value,
+        ignore_index: int = -100,
+        label_smoothing: float = 0.0,
+        chunk_size: int = 1024,
+    ) -> tuple[Tensor, Tensor, Optional[Tensor]]:
+        if reduction == Reduction.NONE.value or not bool(grad_weight_valid.item()):
+            return torch.ops.aten.linear_cross_entropy_backward(
+                grad_output,
+                input,
+                linear_weight,
+                target,
+                linear_bias,
+                reduction,
+                ignore_index,
+                label_smoothing,
+                "batch",
+                None,
+                chunk_size,
+            )
+
+        grad_output_tensor = grad_output.to(input.dtype)
+        grad_input = saved_grad_input.reshape_as(input).mul(grad_output_tensor)
+        grad_weight = saved_grad_weight.mul(grad_output_tensor)
+        grad_bias_opt = None
+        if linear_bias is not None:
+            if not bool(grad_bias_valid.item()):
+                return torch.ops.aten.linear_cross_entropy_backward(
+                    grad_output,
+                    input,
+                    linear_weight,
+                    target,
+                    linear_bias,
+                    reduction,
+                    ignore_index,
+                    label_smoothing,
+                    "batch",
+                    None,
+                    chunk_size,
+                )
+            grad_bias_opt = saved_grad_bias.mul(grad_output_tensor)
+
+        return grad_input, grad_weight, grad_bias_opt
 
 
 @register_decomposition(aten.soft_margin_loss)

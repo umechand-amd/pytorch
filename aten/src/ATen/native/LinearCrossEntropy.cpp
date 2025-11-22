@@ -121,6 +121,54 @@ LinearCrossEntropyForwardResult linear_cross_entropy_forward_batch_chunking(
     int64_t chunk_size,
     bool save_for_backward);
 
+std::tuple<Tensor, Tensor> _linear_cross_entropy_vocab_chunking_cpu(
+    const Tensor& input,
+    const Tensor& linear_weight,
+    const Tensor& target,
+    const std::optional<Tensor>& linear_bias_opt,
+    int64_t reduction,
+    int64_t ignore_index,
+    double label_smoothing,
+    int64_t chunk_size);
+
+std::tuple<Tensor, Tensor, std::optional<Tensor>> _linear_cross_entropy_vocab_chunking_backward_cpu(
+    const Tensor& grad_output,
+    const Tensor& saved_logsumexp,
+    const Tensor& input,
+    const Tensor& linear_weight,
+    const Tensor& target,
+    const std::optional<Tensor>& linear_bias_opt,
+    int64_t reduction,
+    int64_t ignore_index,
+    double label_smoothing,
+    int64_t chunk_size);
+
+std::tuple<Tensor, Tensor, Tensor, Tensor, Tensor, Tensor> _linear_cross_entropy_batch_chunking_cpu(
+    const Tensor& input,
+    const Tensor& linear_weight,
+    const Tensor& target,
+    const std::optional<Tensor>& linear_bias_opt,
+    int64_t reduction,
+    int64_t ignore_index,
+    double label_smoothing,
+    int64_t chunk_size);
+
+std::tuple<Tensor, Tensor, std::optional<Tensor>> _linear_cross_entropy_batch_chunking_backward_cpu(
+    const Tensor& grad_output,
+    const Tensor& saved_grad_input,
+    const Tensor& saved_grad_weight,
+    const Tensor& saved_grad_bias,
+    const Tensor& grad_weight_valid,
+    const Tensor& grad_bias_valid,
+    const Tensor& input,
+    const Tensor& linear_weight,
+    const Tensor& target,
+    const std::optional<Tensor>& linear_bias_opt,
+    int64_t reduction,
+    int64_t ignore_index,
+    double label_smoothing,
+    int64_t chunk_size);
+
 inline const Tensor& contiguous_if_needed(const Tensor& tensor, Tensor& buffer) {
   if (tensor.is_contiguous()) {
     return tensor;

@@ -3633,10 +3633,14 @@ def linear_cross_entropy(
     else:
         reduction_enum = _Reduction.get_enum(reduction)
         vocab_chunk = (
-            vocab_chunk_size if vocab_chunk_size is not None else _DEFAULT_VOCAB_CHUNK_SIZE
+            vocab_chunk_size
+            if vocab_chunk_size is not None
+            else _DEFAULT_VOCAB_CHUNK_SIZE
         )
         batch_chunk = (
-            batch_chunk_size if batch_chunk_size is not None else _DEFAULT_BATCH_CHUNK_SIZE
+            batch_chunk_size
+            if batch_chunk_size is not None
+            else _DEFAULT_BATCH_CHUNK_SIZE
         )
         has_vocab_helper = hasattr(
             torch.ops.aten, "_linear_cross_entropy_vocab_chunking"

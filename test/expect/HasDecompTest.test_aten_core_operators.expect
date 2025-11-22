@@ -12,6 +12,10 @@ aten::_batch_norm_with_update_functional
 aten::_euclidean_dist.out
 aten::_fused_dropout
 aten::_fused_dropout.out
+aten::_linear_cross_entropy_batch_chunking
+aten::_linear_cross_entropy_batch_chunking_backward
+aten::_linear_cross_entropy_vocab_chunking
+aten::_linear_cross_entropy_vocab_chunking_backward
 aten::_log_softmax
 aten::_log_softmax.out
 aten::_native_batch_norm_legit

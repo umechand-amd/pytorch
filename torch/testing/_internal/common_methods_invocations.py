@@ -15072,8 +15072,11 @@ op_db: list[OpInfo] = [
         supports_out=False,
         supports_forward_ad=False,
         supports_fwgrad_bwgrad=False,
+        supports_gradgrad=False,
         supports_cow_input_no_materialize_forward=False,
         supports_cow_input_no_materialize_backward=False,
+        check_batched_grad=False,
+        check_batched_gradgrad=False,
         decorators=(onlyCPU,),
         skips=(
             DecorateInfo(unittest.skip("linear_cross_entropy vmap support pending"),
