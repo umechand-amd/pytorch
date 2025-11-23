@@ -120,11 +120,18 @@ def validate_match(match: Match) -> bool:
     # Calculate optimal partitions and check memory
     output_size = input_meta["numel"]
     index_size = index_meta["numel"]
+
+    # Calculate estimated contention
+    contention_ratio = index_size / output_size
     
     # Check minimum index size threshold
     min_index_size = getattr(config, "partitioned_scatter_min_index_size", 4096)
     if index_size < min_index_size:
         log.debug(f"Skipping: index size {index_size} below threshold {min_index_size}")
+        return False
+
+    # Only use if index_size is small enough and estimated contention is relevant
+    if not (index_size < (min_index_size * 4) and contention_ratio < 4):
         return False
     
     # Get optimal partitions and adjust for memory constraints
@@ -141,8 +148,6 @@ def validate_match(match: Match) -> bool:
     # Store optimization parameters for replacement
     match._num_partitions = num_partitions
     match._scatter_dim = scatter_dim
-
-    contention_ratio = index_size / output_size
     
     log.debug(
         f"Applying optimization: {num_partitions} partitions, "
