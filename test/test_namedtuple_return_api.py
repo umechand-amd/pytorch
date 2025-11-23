@@ -21,7 +21,8 @@ all_operators_with_namedtuple_return = {
     'frexp', 'lu_unpack', 'histogram', 'histogramdd',
     '_fake_quantize_per_tensor_affine_cachemask_tensor_qparams',
     '_fused_moving_avg_obs_fq_helper', 'linalg_lu_factor', 'linalg_lu_factor_ex', 'linalg_lu',
-    '_linalg_det', '_lu_with_info', 'linalg_ldl_factor_ex', 'linalg_ldl_factor', 'linalg_solve_ex', '_linalg_solve_ex'
+    '_linalg_det', '_lu_with_info', 'linalg_ldl_factor_ex', 'linalg_ldl_factor', 'linalg_solve_ex', '_linalg_solve_ex',
+    '_linear_cross_entropy_vocab_chunking', '_linear_cross_entropy_batch_chunking'
 }
 
 all_operators_with_namedtuple_return_skip_list = {
