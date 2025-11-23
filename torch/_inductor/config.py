@@ -6,7 +6,7 @@ from typing import Any, Literal, Optional, TYPE_CHECKING, Union
 import torch
 import torch._inductor.custom_graph_pass
 from torch._environment import is_fbcode
-from torch.utils._config_module import Config, get_tristate_env, install_config_module
+from torch.utils._config_module import Config, get_tristate_env, p
 
 
 if TYPE_CHECKING:
@@ -918,7 +918,7 @@ _micro_pipeline_tp: bool = False
 
 # Enable/disable partitioned scatter optimization for atomic add kernels
 # this will improve kernel performance at cost of memory usage. 
-partitioned_scatter_enabled = False
+partitioned_scatter_enabled = os.environ.get("TORCHINDUCTOR_PARTITIONED_SCATTER_ENABLED", "1") == "1"
 
 
 class _collective:
