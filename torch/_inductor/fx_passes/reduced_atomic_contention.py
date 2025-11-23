@@ -122,6 +122,8 @@ def validate_match(match: Match) -> bool:
     index_size = index_meta["numel"]
 
     # Calculate estimated contention
+    if output_size == 0 or index_size == 0:
+        return False
     contention_ratio = index_size / output_size
     
     # Check minimum index size threshold
