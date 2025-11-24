@@ -3363,7 +3363,6 @@ torch.distributed.fsdp.fully_sharded_data_parallel.FullyShardedDataParallel.name
 torch.distributed.fsdp.fully_sharded_data_parallel.FullyShardedDataParallel.named_buffers(kwargs=)
 torch.distributed.fsdp.fully_sharded_data_parallel.FullyShardedDataParallel.named_parameters(args=)
 torch.distributed.fsdp.fully_sharded_data_parallel.FullyShardedDataParallel.named_parameters(kwargs=)
-torch.distributed.fsdp.fully_sharded_data_parallel.FullyShardedDataParallel.register_comm_hook
 torch.distributed.fsdp.sharded_grad_scaler.ShardedGradScaler.scale[1].scale[1].scale[1].scale[1].scale.apply_scale
 torch.distributed.fsdp.wrap.CustomPolicy.__init__
 torch.distributed.fsdp.wrap.ModuleWrapPolicy.__init__
@@ -3580,15 +3579,11 @@ torch.distributed.optim.utils.register_functional_optim(key=)
 torch.distributed.optim.utils.register_functional_optim(optim=)
 torch.distributed.optim.zero_redundancy_optimizer.ZeroRedundancyOptimizer.__init__
 torch.distributed.optim.zero_redundancy_optimizer.ZeroRedundancyOptimizer.__init__(params=)
-torch.distributed.optim.zero_redundancy_optimizer.ZeroRedundancyOptimizer.join_hook
-torch.distributed.optim.zero_redundancy_optimizer.ZeroRedundancyOptimizer.join_hook(kwargs=)
 torch.distributed.optim.zero_redundancy_optimizer._DDPBucketAssignment.__init__
 torch.distributed.optim.zero_redundancy_optimizer._OverlapInfo.__init__(world_size=)
 torch.distributed.optim.zero_redundancy_optimizer._ZeROJoinHook.__init__
 torch.distributed.optim.zero_redundancy_optimizer._ZeROJoinHook.__init__(zero=)
 torch.distributed.optim.zero_redundancy_optimizer._ZeROJoinHook.main_hook
-torch.distributed.optim.zero_redundancy_optimizer.__init__[3].add_param_group.consolidate_state_dict.step[1].step.load_state_dict.state_dict._local_step._get_assigned_rank._init_zero_for_overlap.join_hook
-torch.distributed.optim.zero_redundancy_optimizer.__init__[3].add_param_group.consolidate_state_dict.step[1].step.load_state_dict.state_dict._local_step._get_assigned_rank._init_zero_for_overlap.join_hook(kwargs=)
 torch.distributed.pipelining.microbatch.TensorChunkSpec.__init__
 torch.distributed.pipelining.microbatch.TensorChunkSpec.__init__(split_dim=)
 torch.distributed.pipelining.microbatch.TensorChunkSpec.from_dict
@@ -7140,7 +7135,6 @@ torch.nn.parallel.distributed.DistributedDataParallel.join_hook
 torch.nn.parallel.distributed.DistributedDataParallel.join_hook(kwargs=)
 torch.nn.parallel.distributed.DistributedDataParallel.join_process_group
 torch.nn.parallel.distributed.DistributedDataParallel.no_sync
-torch.nn.parallel.distributed.DistributedDataParallel.register_comm_hook
 torch.nn.parallel.distributed.DistributedDataParallel.scatter
 torch.nn.parallel.distributed.DistributedDataParallel.scatter(device_ids=)
 torch.nn.parallel.distributed.DistributedDataParallel.scatter(inputs=)
