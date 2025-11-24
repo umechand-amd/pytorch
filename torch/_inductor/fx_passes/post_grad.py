@@ -146,10 +146,11 @@ def post_grad_passes(gm: torch.fx.GraphModule, is_inference: bool):
             GraphTransformObserver(gm, f"pass_pattern_{i}").apply_graph_pass(
                 patterns.apply
             )
-        if config.partitioned_scatter_enabled:
-            GraphTransformObserver(gm, "partitioned_scatter_optimization").apply_graph_pass(
-                partitioned_scatter_optimization_pass
-            )
+        # TEMPORARY DISABLE
+        #if config.partitioned_scatter_enabled:
+        #    GraphTransformObserver(gm, "partitioned_scatter_optimization").apply_graph_pass(
+        #        partitioned_scatter_optimization_pass
+        #    )
         for pass_name in config.post_grad_fusion_options:
             # skip all patterns for group batch fusions or quantization patterns
             if pass_name in POST_GRAD_FUSIONS or pass_name in OPTIMUS_EXCLUDE_POST_GRAD:
