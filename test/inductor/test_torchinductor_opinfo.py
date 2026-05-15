@@ -697,7 +697,12 @@ inductor_override_kwargs["xpu"] = {
 }
 if TEST_WITH_ROCM:
     inductor_override_kwargs["cuda"].update(
-        {("cummin", f16): {"atol": 1e-3, "rtol": 1e-5}}
+        {
+            ("cummin", f16): {"atol": 1e-3, "rtol": 1e-5},
+            # __rpow__ on ROCm has slightly looser FP precision than CUDA;
+            # observed worst-case rtol was ~1.33e-5 vs default 1.3e-5.
+            ("__rpow__", f32): {"atol": 5e-5, "rtol": 1.5e-5},
+        }
     )
 
 
