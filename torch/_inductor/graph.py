@@ -784,24 +784,21 @@ class GraphLowering(torch.fx.Interpreter):
         # These run for training too (is_inference=False), which the inference
         # FLOP-weighted heuristic further below never covers.
         if torch.version.hip:
-            # Compare the HIP version as an integer tuple so e.g. "6.10" is not
-            # mis-parsed as 6.1 by a float compare.
-            hip_version = tuple(int(x) for x in torch.version.hip.split(".")[:2])
 
             def _conv_device_index(n: torch.fx.Node) -> int:
-                # Derive arch from the conv's own input tensor rather than
-                # hard-coding device 0; fall back to the current device.
-                try:
-                    dev = n.args[0].meta["val"].device  # type: ignore[union-attr]
-                    if dev.index is not None:
-                        return dev.index
-                except (AttributeError, KeyError, IndexError):
-                    pass
+                # Derive the device from the conv's own input tensor rather than
+                # hard-coding device 0; fall back to the current device. meta
+                # ["val"] is trusted here as it is everywhere else in this method
+                # (the heuristics below read it unguarded too).
+                dev = n.args[0].meta["val"].device  # type: ignore[union-attr]
+                if dev.index is not None:
+                    return dev.index
                 return torch.cuda.current_device()
 
-            # If RDNA arch on ROCm do not force NHWC convolutions as this
-            # is still experimental.
-            if hip_version >= (6, 3) and all(
+            # RDNA (gfx11xx/gfx12xx) NHWC convs are experimental on every ROCm
+            # version, so this exclusion is intentionally NOT gated on the HIP
+            # version (unlike CDNA enablement). Skip layout opt for RDNA graphs.
+            if all(
                 n.args[idx].meta["val"].device.type == "cuda"
                 for n in conv_nodes
                 for idx in [0, 1]
